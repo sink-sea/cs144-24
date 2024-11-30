@@ -1,8 +1,10 @@
 ---
 Language: Cpp
 BasedOnStyle: Mozilla
+IndentWidth: 4
+TabWidth: 4
 ColumnLimit: 116
-SpacesInParentheses: true
+SpacesInParentheses: false
 AlwaysBreakAfterReturnType: None
 AlwaysBreakAfterDefinitionReturnType: None
 SpaceBeforeCpp11BracedList: true
@@ -10,12 +12,13 @@ BreakBeforeBinaryOperators: All
 Cpp11BracedListStyle: true
 AllowShortBlocksOnASingleLine: Always
 BreakBeforeBraces: Custom
+IndentAccessModifiers: false
 BraceWrapping:
-  AfterClass: true
+  AfterClass: false
   AfterControlStatement: Never
-  AfterFunction: true
-  AfterStruct: true
-  AfterEnum: true
+  AfterFunction: false
+  AfterStruct: false
+  AfterEnum: false
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
