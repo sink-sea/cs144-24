@@ -8,8 +8,31 @@
 using namespace std;
 
 void get_URL(const string& host, const string& path) {
-    cerr << "Function called: get_URL(" << host << ", " << path << ")\n";
-    cerr << "Warning: get_URL() has not been implemented yet.\n";
+    /* connect to host */
+    Address addr {host, "http"};
+    TCPSocket tcp {};
+    tcp.connect(addr);
+
+    /* send request and get response */
+    string request = "GET " + path + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" + "Connection: close\r\n\r\n";
+    tcp.write(request);
+    string response {};
+    string buf {};
+    while (!tcp.eof()) {
+        tcp.read(buf);
+        response.append(buf);
+    }
+
+    /* parse and extract content entity */
+    auto seperation = response.find("\r\n\r\n");
+    int offset = 4;
+    if (seperation == string::npos) {
+        seperation = response.find("\n\n");
+        offset = 2;
+    }
+    string entity = response.substr(seperation + offset);
+    cout << entity;
+    tcp.close();
 }
 
 int main(int argc, char* argv[]) {
