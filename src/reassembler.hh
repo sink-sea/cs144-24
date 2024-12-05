@@ -40,5 +40,10 @@ class Reassembler {
     const Writer& writer() const { return output_.writer(); }
 
   private:
+    void output();
     ByteStream output_; // the Reassembler writes to this ByteStream
+    typedef std::pair<uint64_t, std::string> IndexString;
+    std::priority_queue<IndexString, std::vector<IndexString>, std::greater<>> mutable storage_ {};
+    uint64_t expected_begin_ {};
+    uint64_t last_index_ {std::string::npos};
 };
