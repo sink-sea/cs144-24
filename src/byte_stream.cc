@@ -11,7 +11,7 @@ bool Writer::is_closed() const {
 
 void Writer::push(string data) {
     // Your code here.
-    if (is_closed()) {
+    if (is_closed() || has_error()) {
         return;
     }
 
