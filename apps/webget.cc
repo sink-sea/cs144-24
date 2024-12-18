@@ -4,13 +4,14 @@
 #include <string>
 
 #include "socket.hh"
+#include "tcp_minnow_socket.hh"
 
 using namespace std;
 
 void get_URL(const string& host, const string& path) {
     /* connect to host */
     Address addr {host, "http"};
-    TCPSocket tcp {};
+    CS144TCPSocket tcp {};
     tcp.connect(addr);
 
     /* send request and get response */
@@ -18,9 +19,11 @@ void get_URL(const string& host, const string& path) {
     tcp.write(request);
     string response {};
     string buf {};
+    
     while (!tcp.eof()) {
+        buf.clear();
         tcp.read(buf);
-        response.append(buf);
+        response.append(buf.c_str());
     }
 
     /* parse and extract content entity */
@@ -32,7 +35,6 @@ void get_URL(const string& host, const string& path) {
     }
     string entity = response.substr(seperation + offset);
     cout << entity;
-    tcp.close();
 }
 
 int main(int argc, char* argv[]) {
