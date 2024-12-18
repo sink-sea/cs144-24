@@ -27,7 +27,7 @@ TCPReceiverMessage TCPReceiver::send() const {
     /* abs_seqno = pushed bytes + SYN + FIN, wrap it */
     auto ackno_
       = syn_ ? optional {Wrap32::wrap(writer_.bytes_pushed() + syn_ + writer_.is_closed(), zero_point_)} : nullopt;
-    
+
     /* window size */
     uint16_t wnd_size_ = writer_.available_capacity() > UINT16_MAX
                            ? static_cast<uint16_t>(UINT16_MAX)
