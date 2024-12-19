@@ -15,11 +15,7 @@ void TCPSender::push(const TransmitFunction& transmit) {
     auto& reader_ = static_cast<Reader&>(this->input_);
 
     /* send as much as possible */
-    while (true) {
-        if (fin_ || rwnd_ == 0) {
-            return;
-        }
-
+    while (not fin_) {
         auto send_msg {make_empty_message()};
         auto max_payload_len = min((uint64_t)rwnd_, TCPConfig::MAX_PAYLOAD_SIZE) - send_msg.SYN;
 
@@ -33,7 +29,7 @@ void TCPSender::push(const TransmitFunction& transmit) {
         rwnd_ -= send_msg.FIN;
         seq_len += send_msg.FIN;
 
-        if (seq_len == 0 && !send_msg.RST) {
+        if (seq_len == 0 and not send_msg.RST) {
             return;
         }
 
@@ -63,8 +59,12 @@ void TCPSender::receive(const TCPReceiverMessage& msg) {
         writer().set_error();
     }
 
+    if (not msg.ackno.has_value()) {
+        return;
+    }
+
     /* ACK number */
-    auto ackno = msg.ackno.value_or(Wrap32 {0}).unwrap(isn_, last_byte_acked_);
+    auto ackno = msg.ackno.value().unwrap(isn_, last_byte_acked_);
     if (ackno > last_byte_sent_) { /* invalid ack */
         return;
     }
@@ -102,7 +102,7 @@ void TCPSender::tick(uint64_t ms_since_last_tick, const TransmitFunction& transm
 
     if (timer_ >= RTO_ms_) {
         transmit(sending_bytes_.front()); // retransmission
-        if (!zero_rwnd_) {
+        if (not zero_rwnd_) {
             retransmission_cnt_++;
             RTO_ms_ *= 2;
         }

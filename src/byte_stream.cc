@@ -5,13 +5,11 @@ using namespace std;
 ByteStream::ByteStream(uint64_t capacity) : capacity_(capacity) {}
 
 bool Writer::is_closed() const {
-    // Your code here.
     return closed_;
 }
 
 void Writer::push(string data) {
-    // Your code here.
-    if (is_closed() || has_error()) {
+    if (is_closed() or has_error()) {
         return;
     }
 
@@ -26,38 +24,30 @@ void Writer::push(string data) {
 }
 
 void Writer::close() {
-    // Your code here.
     closed_ = true;
 }
 
 uint64_t Writer::available_capacity() const {
-    // Your code here.
-    // return capacity_ - buffer_.size();
     return capacity_ - total_bytes_buffered_;
 }
 
 uint64_t Writer::bytes_pushed() const {
-    // Your code here.
     return total_bytes_pushed_;
 }
 
 bool Reader::is_finished() const {
-    // Your code here.
-    return closed_ && (total_bytes_buffered_ == 0);
+    return closed_ and (total_bytes_buffered_ == 0);
 }
 
 uint64_t Reader::bytes_popped() const {
-    // Your code here.
     return total_bytes_popped_;
 }
 
 string_view Reader::peek() const {
-    // Your code here
-    return buffer_.empty() ? string_view {} : string_view {buffer_.front()}.substr(poped_prefix);
+    return buffer_.empty() ? string_view {} : string_view {buffer_.front()}.substr(prefix_bytes_poped_);
 }
 
 void Reader::pop(uint64_t len) {
-    // Your code here.
     if (len > bytes_buffered()) {
         error_ = true;
         return;
@@ -66,20 +56,19 @@ void Reader::pop(uint64_t len) {
     total_bytes_popped_ += len;
     total_bytes_buffered_ -= len;
 
-    while (len > 0 && !buffer_.empty()) {
-        auto str_size_left = buffer_.front().size() - poped_prefix;
+    while (len > 0 and !buffer_.empty()) {
+        auto str_size_left = buffer_.front().size() - prefix_bytes_poped_;
         if (str_size_left <= len) {
-            poped_prefix = 0;
+            prefix_bytes_poped_ = 0;
             len -= str_size_left;
             buffer_.pop();
         } else {
-            poped_prefix += len;
+            prefix_bytes_poped_ += len;
             break;
         }
     }
 }
 
 uint64_t Reader::bytes_buffered() const {
-    // Your code here.
     return total_bytes_buffered_;
 }

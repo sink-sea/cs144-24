@@ -26,6 +26,5 @@ class TCPReceiver {
 
   private:
     Reassembler reassembler_;
-    Wrap32 zero_point_ {0};
-    bool syn_ {};
+    std::optional<Wrap32> zero_point_ {};
 };

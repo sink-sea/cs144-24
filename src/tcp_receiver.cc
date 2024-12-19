@@ -7,16 +7,19 @@ void TCPReceiver::receive(TCPSenderMessage message) {
         return;
     }
 
-    if (message.SYN) {
-        zero_point_ = move(message.seqno);
-        syn_ = true;
-    }
-
     if (message.RST) {
         reader().set_error();
+        return;
     }
 
-    reassembler_.insert(message.seqno.unwrap(zero_point_ + !message.SYN, writer().bytes_pushed()),
+    if (not zero_point_.has_value()) {
+        if (not message.SYN) {
+            return;
+        }
+        zero_point_.emplace(message.seqno);
+    }
+
+    reassembler_.insert(message.seqno.unwrap(zero_point_.value() + !message.SYN, writer().bytes_pushed()),
                         move(message.payload),
                         message.FIN);
 }
@@ -24,9 +27,9 @@ void TCPReceiver::receive(TCPSenderMessage message) {
 TCPReceiverMessage TCPReceiver::send() const {
     auto writer_ = this->writer();
 
-    /* abs_seqno = pushed bytes + SYN + FIN, wrap it */
-    auto ackno_
-      = syn_ ? optional {Wrap32::wrap(writer_.bytes_pushed() + syn_ + writer_.is_closed(), zero_point_)} : nullopt;
+    auto ackno_ = zero_point_.has_value()
+                    ? optional {Wrap32::wrap(writer_.bytes_pushed() + 1 + writer_.is_closed(), zero_point_.value())}
+                    : nullopt;
 
     /* window size */
     uint16_t wnd_size_ = writer_.available_capacity() > UINT16_MAX

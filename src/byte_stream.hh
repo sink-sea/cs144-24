@@ -30,7 +30,7 @@ class ByteStream {
     uint64_t total_bytes_pushed_ {};
     uint64_t total_bytes_popped_ {};
     uint64_t total_bytes_buffered_ {};
-    uint64_t poped_prefix {};
+    uint64_t prefix_bytes_poped_ {};
 };
 
 class Writer : public ByteStream {

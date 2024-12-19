@@ -11,30 +11,20 @@ using namespace std;
 void get_URL(const string& host, const string& path) {
     /* connect to host */
     Address addr {host, "http"};
-    CS144TCPSocket tcp {};
-    tcp.connect(addr);
+    CS144TCPSocket tcp_sock {};
+    tcp_sock.connect(addr);
 
     /* send request and get response */
     string request = "GET " + path + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" + "Connection: close\r\n\r\n";
-    tcp.write(request);
-    string response {};
+    tcp_sock.write(request);
     string buf {};
-    
-    while (!tcp.eof()) {
-        buf.clear();
-        tcp.read(buf);
-        response.append(buf.c_str());
-    }
 
-    /* parse and extract content entity */
-    auto seperation = response.find("\r\n\r\n");
-    int offset = 4;
-    if (seperation == string::npos) {
-        seperation = response.find("\n\n");
-        offset = 2;
+    while (not tcp_sock.eof()) {
+        buf.clear();
+        tcp_sock.read(buf);
+        cout << buf.c_str();
     }
-    string entity = response.substr(seperation + offset);
-    cout << entity;
+    tcp_sock.wait_until_closed();
 }
 
 int main(int argc, char* argv[]) {

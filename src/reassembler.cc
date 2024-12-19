@@ -3,7 +3,7 @@
 using namespace std;
 
 void Reassembler::insert(uint64_t first_index, string data, bool is_last_substring) {
-    uint64_t asize = Writer {output_}.available_capacity();
+    auto asize = Writer {output_}.available_capacity();
 
     /* data sent before or beyond capacityl, drop it */
     if (first_index + data.size() < expected_begin_ or expected_begin_ + asize < first_index) {
@@ -61,7 +61,7 @@ uint64_t Reassembler::bytes_pending() const {
     uint64_t total_bytes_stored_ {};
     uint64_t prev_index_ {};
     vector<IndexString> temp {};
-    uint64_t asize = Writer {output_}.available_capacity();
+    auto asize = Writer {output_}.available_capacity();
 
     /* well, just mutable */
     while (!storage_.empty()) {
@@ -81,7 +81,7 @@ uint64_t Reassembler::bytes_pending() const {
         prev_index_ += (prev_index_ == 0) ? first_index_ : 0;
 
         if (first_index_ + data_.size() >= prev_index_) {
-            uint64_t offset = first_index_ >= prev_index_ ? 0 : prev_index_ - first_index_;
+            auto offset = first_index_ >= prev_index_ ? 0 : prev_index_ - first_index_;
             if (first_index_ < expected_begin_) {
                 if (data_.size() + first_index_ > asize + expected_begin_) {
                     total_bytes_stored_ += asize;
