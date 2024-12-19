@@ -1,16 +1,15 @@
 #include "file_descriptor.hh"
 
+#include "exception.hh"
+
+#include <algorithm>
 #include <fcntl.h>
+#include <iostream>
+#include <stdexcept>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
-
-#include <algorithm>
-#include <iostream>
-#include <stdexcept>
-
-#include "exception.hh"
 
 using namespace std;
 
@@ -76,13 +75,13 @@ FileDescriptor FileDescriptor::duplicate() const {
 // buffer is the string to be read into
 void FileDescriptor::read(string& buffer) {
     if (buffer.empty()) {
-        buffer.clear();
         buffer.resize(kReadBufferSize);
     }
 
     const ssize_t bytes_read = ::read(fd_num(), buffer.data(), buffer.size());
     if (bytes_read < 0) {
         if (internal_fd_->non_blocking_ and (errno == EAGAIN or errno == EINPROGRESS)) {
+            buffer.clear();
             return;
         }
         throw unix_error {"read"};
@@ -120,6 +119,7 @@ void FileDescriptor::read(vector<string>& buffers) {
     const ssize_t bytes_read = ::readv(fd_num(), iovecs.data(), static_cast<int>(iovecs.size()));
     if (bytes_read < 0) {
         if (internal_fd_->non_blocking_ and (errno == EAGAIN or errno == EINPROGRESS)) {
+            buffers.clear();
             return;
         }
         throw unix_error {"read"};
