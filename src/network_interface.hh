@@ -1,8 +1,10 @@
 #pragma once
 
+#include <map>
 #include <queue>
 
 #include "address.hh"
+#include "arp_message.hh"
 #include "ethernet_frame.hh"
 #include "ipv4_datagram.hh"
 
@@ -79,4 +81,22 @@ class NetworkInterface {
 
     // Datagrams that have been received
     std::queue<InternetDatagram> datagrams_received_ {};
+
+    // Wrap ARP messages
+    EthernetFrame wrap_arp_message(const ARPMessage& arp_msg, const EthernetHeader& header);
+
+    // Make an ARP message
+    ARPMessage make_arp_message(uint16_t opcode,
+                                uint32_t target_ip_address,
+                                EthernetAddress target_ethernet_address);
+    // frames waiting for ARP request to know the dst MAC address
+    std::map<uint32_t, std::vector<EthernetFrame>> frames_to_send_ {};
+
+    // ARP table
+    std::map<uint32_t, std::pair<EthernetAddress, uint64_t>> arp_table_ {};
+    static constexpr uint64_t ARP_TTL_ = 30000;
+
+    // ARP requests sent
+    std::map<uint32_t, std::pair<EthernetFrame, uint64_t>> arp_requests_sent_ {};
+    static constexpr uint64_t ARP_RTO_ = 5000;
 };
