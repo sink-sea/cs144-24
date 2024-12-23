@@ -22,7 +22,7 @@ void get_URL(const string& host, const string& path) {
     while (not tcp_sock.eof()) {
         buf.clear();
         tcp_sock.read(buf);
-        cout << buf.c_str();
+        cout << buf;
     }
     tcp_sock.wait_until_closed();
 }
