@@ -26,7 +26,7 @@ void Reassembler::insert(uint64_t first_index, string data, bool is_last_substri
 void Reassembler::output() {
     uint64_t asize {};
     Writer& writer_ = static_cast<Writer&>(output_);
-    while (!storage_.empty()) {
+    while (not storage_.empty()) {
         auto IndexData = storage_.top();
         auto& first_index_ = IndexData.first;
         auto& data_ = IndexData.second;
@@ -64,7 +64,7 @@ uint64_t Reassembler::bytes_pending() const {
     auto asize = Writer {output_}.available_capacity();
 
     /* well, just mutable */
-    while (!storage_.empty()) {
+    while (not storage_.empty()) {
         auto IndexData = storage_.top();
         auto& first_index_ = IndexData.first;
         auto& data_ = IndexData.second;

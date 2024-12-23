@@ -56,7 +56,7 @@ void Reader::pop(uint64_t len) {
     total_bytes_popped_ += len;
     total_bytes_buffered_ -= len;
 
-    while (len > 0 and !buffer_.empty()) {
+    while (len > 0 and not buffer_.empty()) {
         auto str_size_left = buffer_.front().size() - prefix_bytes_poped_;
         if (str_size_left <= len) {
             prefix_bytes_poped_ = 0;
