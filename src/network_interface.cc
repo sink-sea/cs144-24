@@ -17,7 +17,7 @@ NetworkInterface::NetworkInterface(string_view name,
   , ethernet_address_(ethernet_address)
   , ip_address_(ip_address) {
     cerr << "DEBUG: Network interface has Ethernet address " << to_string(ethernet_address) << " and IP address "
-         << ip_address.ip() << "\n";
+         << ip_address.ip() << " and name " << name << "\n";
 }
 
 //! \param[in] dgram the IPv4 datagram to be sent
@@ -25,6 +25,10 @@ NetworkInterface::NetworkInterface(string_view name,
 //! may also be another host if directly connected to the same network as the destination) Note: the Address type
 //! can be converted to a uint32_t (raw 32-bit IP address) by using the Address::ipv4_numeric() method.
 void NetworkInterface::send_datagram(const InternetDatagram& dgram, const Address& next_hop) {
+    if (dgram.header.ttl == 0) {
+        return;
+    }
+
     auto next_hop_ip = next_hop.ipv4_numeric();
     EthernetFrame ipv4_frame {{{}, ethernet_address_, EthernetHeader::TYPE_IPv4}};
 
@@ -39,6 +43,9 @@ void NetworkInterface::send_datagram(const InternetDatagram& dgram, const Addres
         return;
     }
 
+    /* store unsent frames, and wait for ARP reply */
+    frames_to_send_[next_hop_ip].push_back(ipv4_frame);
+
     /* ARP table miss, and not requested yet */
     if (not arp_requests_sent_.contains(next_hop_ip)) {
         /* send an ARP request to get next_hop's MAC address */
@@ -46,12 +53,9 @@ void NetworkInterface::send_datagram(const InternetDatagram& dgram, const Addres
         EthernetHeader header_ {ETHERNET_BROADCAST, ethernet_address_, EthernetHeader::TYPE_ARP};
 
         auto arp_request_frame {wrap_arp_message(arp_request, header_)};
+        arp_requests_sent_[next_hop_ip] = {arp_request_frame, DEFAULT_ARP_RTO_};
         transmit(arp_request_frame);
-        arp_requests_sent_[next_hop_ip] = {arp_request_frame, ARP_RTO_};
     }
-
-    /* store unsent frames */
-    frames_to_send_[next_hop_ip].push_back(ipv4_frame);
 }
 
 //! \param[in] frame the incoming Ethernet frame
@@ -74,7 +78,7 @@ void NetworkInterface::recv_frame(const EthernetFrame& frame) {
         datagrams_received_.push(ipv4_datagram);
     }
 
-    /* ARP frames */
+    /* ARP frames: reply or request */
     if (frame.header.type == EthernetHeader::TYPE_ARP) {
         ARPMessage arp_msg {};
         arp_msg.parse(parser_);
@@ -84,13 +88,14 @@ void NetworkInterface::recv_frame(const EthernetFrame& frame) {
         }
 
         auto sender_ip = arp_msg.sender_ip_address;
-        arp_table_[sender_ip] = {arp_msg.sender_ethernet_address, ARP_TTL_}; // get MAC addrs as many as possible
+        /* get as many MAC addresses as possible */
+        arp_table_[sender_ip] = {arp_msg.sender_ethernet_address, DEFAULT_ARP_TTL_};
 
         if (arp_msg.target_ip_address != ip_address_.ipv4_numeric()) {
             return;
         }
 
-        /* ARP reply: now send corresponding frames stored */
+        /* ARP reply: send corresponding frames stored */
         if (arp_msg.opcode == ARPMessage::OPCODE_REPLY) {
             arp_requests_sent_.erase(sender_ip);
             for (auto& frame_ : frames_to_send_[sender_ip]) {
@@ -112,8 +117,8 @@ void NetworkInterface::recv_frame(const EthernetFrame& frame) {
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
 void NetworkInterface::tick(const size_t ms_since_last_tick) {
-    /* traverse map table and update TTL */
-    auto update_TTL = [ms_since_last_tick](auto& map_) {
+    /* traverse mapping tables and update */
+    auto tick_and_update_ = [ms_since_last_tick](auto& map_) {
         vector<uint32_t> ip_to_erase_ {};
         for (auto& [ip_, pair_] : map_) {
             auto& TTL_ = pair_.second;
@@ -125,13 +130,13 @@ void NetworkInterface::tick(const size_t ms_since_last_tick) {
         return ip_to_erase_;
     };
 
-    for (auto& ip_ : update_TTL(arp_table_)) {
+    for (auto& ip_ : tick_and_update_(arp_table_)) {
         arp_table_.erase(ip_);
     }
 
-    for (auto& ip_ : update_TTL(arp_requests_sent_)) {
+    for (auto& ip_ : tick_and_update_(arp_requests_sent_)) {
         transmit(arp_requests_sent_[ip_].first);
-        arp_requests_sent_[ip_].second = ARP_RTO_;
+        arp_requests_sent_[ip_].second = DEFAULT_ARP_RTO_;
     }
 }
 
