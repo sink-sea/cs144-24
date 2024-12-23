@@ -2,7 +2,10 @@
 
 #include <memory>
 #include <optional>
+#include <tuple>
+#include <vector>
 
+#include "address.hh"
 #include "exception.hh"
 #include "network_interface.hh"
 
@@ -33,4 +36,7 @@ class Router {
   private:
     // The router's collection of network interfaces
     std::vector<std::shared_ptr<NetworkInterface>> _interfaces {};
+
+    /* The router's forwarding table */
+    std::vector<std::tuple<uint32_t, uint8_t, size_t, std::optional<Address>>> forwarding_table_ {};
 };
