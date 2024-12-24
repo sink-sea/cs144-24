@@ -150,9 +150,9 @@ EthernetFrame NetworkInterface::wrap_arp_message(const ARPMessage& arp_msg, cons
     return arp_reply;
 }
 
-ARPMessage NetworkInterface::make_arp_message(uint16_t opcode,
-                                              uint32_t target_ip_address,
-                                              EthernetAddress target_ethernet_address) {
+ARPMessage NetworkInterface::make_arp_message(const uint16_t opcode,
+                                              const uint32_t target_ip_address,
+                                              const EthernetAddress& target_ethernet_address) {
     ARPMessage arp_msg {};
     arp_msg.opcode = opcode;
     arp_msg.sender_ip_address = ip_address_.ipv4_numeric();

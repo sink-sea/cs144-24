@@ -12,7 +12,7 @@ void Writer::push(string data) {
     if (is_closed() or has_error()) {
         return;
     }
-
+    
     auto asize = min(available_capacity(), data.size());
     if (asize == 0) {
         return;
@@ -49,14 +49,14 @@ string_view Reader::peek() const {
 
 void Reader::pop(uint64_t len) {
     if (len > bytes_buffered()) {
-        error_ = true;
         return;
     }
 
     total_bytes_popped_ += len;
     total_bytes_buffered_ -= len;
 
-    while (len > 0 and not buffer_.empty()) {
+    /* lazy pop, record the poped prefix length */
+    while (len > 0) {
         auto str_size_left = buffer_.front().size() - prefix_bytes_poped_;
         if (str_size_left <= len) {
             prefix_bytes_poped_ = 0;

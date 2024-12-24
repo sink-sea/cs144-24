@@ -86,9 +86,9 @@ class NetworkInterface {
     EthernetFrame wrap_arp_message(const ARPMessage& arp_msg, const EthernetHeader& header);
 
     /* Make an ARP message */
-    ARPMessage make_arp_message(uint16_t opcode,
-                                uint32_t target_ip_address,
-                                EthernetAddress target_ethernet_address);
+    ARPMessage make_arp_message(const uint16_t opcode,
+                                const uint32_t target_ip_address,
+                                const EthernetAddress& target_ethernet_address);
 
     /* unsent frames waiting for ARP request to know the dst MAC address */
     std::map<uint32_t, std::vector<EthernetFrame>> frames_to_send_ {};

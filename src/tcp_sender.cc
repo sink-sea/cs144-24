@@ -24,7 +24,7 @@ void TCPSender::push(const TransmitFunction& transmit) {
 
         uint64_t seq_len = send_msg.sequence_length();
         rwnd_ = (rwnd_ > seq_len) ? rwnd_ - seq_len : 0;
-        send_msg.FIN = rwnd_ != 0 && reader_.is_finished();
+        send_msg.FIN = rwnd_ != 0 and reader_.is_finished();
         fin_ = send_msg.FIN;
         rwnd_ -= send_msg.FIN;
         seq_len += send_msg.FIN;
