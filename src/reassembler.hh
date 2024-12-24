@@ -42,8 +42,12 @@ class Reassembler {
   private:
     void output();
     ByteStream output_; // the Reassembler writes to this ByteStream
+
+    /* IndexString pair: <first_index, data> */
     typedef std::pair<uint64_t, std::string> IndexString;
+    /* reassembler storage queue */
     std::priority_queue<IndexString, std::vector<IndexString>, std::greater<>> mutable storage_ {};
+
     uint64_t expected_begin_ {};
     uint64_t last_index_ {std::string::npos};
 };
